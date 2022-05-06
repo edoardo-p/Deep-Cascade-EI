@@ -10,7 +10,9 @@ from physics.ct import CT
 from utils.metric import calc_psnr
 
 
-parser = argparse.ArgumentParser(description="Inpainting test.")
+parser = argparse.ArgumentParser(
+    description="Deep Cascade CNN with EI test parameters."
+)
 
 parser.add_argument(
     "--sample-to-show",
@@ -21,16 +23,16 @@ parser.add_argument(
 )
 parser.add_argument(
     "--ckp",
-    default="./ckp/ct/ckp_ei_final.pth.tar",
+    default="./ckp/ckp_final.pth.tar",
     type=str,
     metavar="PATH",
     help="path to checkpoint of a trained model",
 )
 parser.add_argument(
     "--model-name",
-    default="EI",
+    default="CCNN with EI",
     type=str,
-    help="name of the trained model (default: 'EI')",
+    help="name of the trained model (default: 'CCNN with EI')",
 )
 parser.add_argument(
     "--dataset",
