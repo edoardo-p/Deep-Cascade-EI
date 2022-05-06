@@ -16,6 +16,6 @@ def calc_mse(target, pred):
 
 
 def calc_ssim(target, pred):
-    target = target.reshape(128, 128, 2).detach().numpy()
-    pred = pred.reshape(128, 128, 2).detach().numpy()
-    return ssim(target, pred, multichannel=True)
+    target = target.detach().numpy()
+    pred = pred.detach().numpy()
+    return ssim(target, pred)

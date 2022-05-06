@@ -9,7 +9,6 @@ from transforms.rotate import Rotate
 
 parser = argparse.ArgumentParser(description="EI experiment parameters.")
 
-# parser.add_argument('--gpu', default=0, type=int, help='GPU id to use.')
 parser.add_argument(
     "--schedule",
     default=[2000, 3000, 4000],
@@ -60,8 +59,15 @@ parser.add_argument(
     type=int,
     help="save checkpoints interval epochs (default: 1000)",
 )
+parser.add_argument(
+    "--dataset",
+    default="./dataset/CT100_128x128.mat",
+    type=str,
+    metavar="PATH",
+    help="path to the dataset MATLAB file (default: ./dataset/CT100_128x128.mat)",
+)
 
-# ei specific configs:
+# EI specific configs:
 parser.add_argument(
     "--ei-trans",
     default=5,
@@ -75,7 +81,7 @@ parser.add_argument(
     help="equivariance strength (default: 100)",
 )
 
-# inverse problem task configs:
+# Inverse problem task configs:
 parser.add_argument(
     "--views",
     default=50,
@@ -89,7 +95,7 @@ def main():
 
     lr = {"G": args.lr, "WD": args.weight_decay}
 
-    dataset = CTData(mode="train")
+    dataset = CTData(mode="train", root_dir=args.dataset)
     dataloader = DataLoader(dataset=dataset, batch_size=args.batch_size, shuffle=True)
     # forward model A
     physics = CT(img_width=128, radon_view=args.ct_views, circle=False)
