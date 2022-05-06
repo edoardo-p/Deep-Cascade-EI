@@ -1,19 +1,17 @@
+import argparse
+
+import matplotlib.pyplot as plt
 import torch
 from torch.utils.data import DataLoader
 
-from models.ccnn import CCNN
 from dataset.ctdb import CTData
+from models.ccnn import CCNN
 from physics.ct import CT
-from utils.metric import cal_psnr, cal_mse, cal_ssim
+from utils.metric import calc_psnr
 
-# from utils.metric import cal_psnr
-
-import argparse
-import matplotlib.pyplot as plt
 
 parser = argparse.ArgumentParser(description="Inpainting test.")
 
-parser.add_argument("--gpu", default=0, type=int, help="GPU id to use.")
 parser.add_argument(
     "--sample-to-show",
     default=[9],
@@ -34,28 +32,35 @@ parser.add_argument(
     type=str,
     help="name of the trained model (default: 'EI')",
 )
+parser.add_argument(
+    "--dataset",
+    default="./dataset/CT100_128x128.mat",
+    type=str,
+    metavar="PATH",
+    help="path to the dataset MATLAB file (default: ./dataset/CT100_128x128.mat)",
+)
 
 
 def main():
     args = parser.parse_args()
 
-    device = "cpu"
-
     cnn_net = CCNN(
+        masks=None,
         in_channels=1,
         out_channels=1,
         filters=64,
         depth=2,
         convolutions=2,
     )
-    forw = CT(img_width=128, radon_view=50, circle=False, device=device)
-    dataset = CTData(mode="test")
+    forw = CT(img_width=128, radon_view=50, circle=False)
+    dataset = CTData(mode="test", root_dir=args.dataset)
     dataloader = DataLoader(dataset=dataset, batch_size=1, shuffle=False)
 
-    def test(net, ckp, fbp, adv=False):
-        checkpoint = torch.load(ckp, map_location=device)
-        net.load_state_dict(checkpoint["state_dict_G" if adv else "state_dict"])
-        net.eval()
+    checkpoint = torch.load(args.ckp)
+    cnn_net.load_state_dict(checkpoint["state_dict"])
+    cnn_net.eval()
+
+    def test(net, fbp):
         return net(fbp)
 
     for i, x in enumerate(dataloader):
@@ -66,32 +71,30 @@ def main():
 
             y = forw.A(x)
             fbp = forw.A_dagger(y)
-            x_hat = test(cnn_net, args.ckp_net, fbp)
+            x_hat = test(cnn_net, fbp)
 
             plt.subplot(1, 4, 1)
-            plt.imshow(y[0].detach().permute(1, 2, 0).cpu().numpy())
+            plt.imshow(y[0].detach().permute(1, 2, 0).numpy())
             plt.title("y")
 
             plt.subplot(1, 4, 2)
-            plt.imshow(fbp[0].detach().permute(1, 2, 0).cpu().numpy())
-            plt.title("FBP ({:.2f})".format(cal_psnr(x, fbp)))
+            plt.imshow(fbp[0].detach().permute(1, 2, 0).numpy())
+            plt.title(f"FBP ({calc_psnr(x, fbp):.2f})")
 
-            plt.subplot(1, 4, 3)
-            plt.imshow(x_hat[0].detach().permute(1, 2, 0).cpu().numpy())
-            plt.title("{} ({:.2f})".format(args.model_name, cal_psnr(x, x_hat)))
+            plt.subplot(1, 4, 1)
+            plt.imshow(x_hat[0].detach().permute(1, 2, 0).numpy())
+            plt.title(f"{args.model_name} (({calc_psnr(x, fbp):.2f}))")
 
-            plt.subplot(1, 4, 4)
-            plt.imshow(x[0].detach().permute(1, 2, 0).cpu().numpy())
-            plt.title("x (GT)")
+            plt.subplot(1, 4, 2)
+            plt.imshow(x[0].detach().permute(1, 2, 0).numpy())
+            plt.title("x")
 
-            # ax = plt.gca()
-            # ax.set_xticks([]), ax.set_yticks([])
+            ax = plt.gca()
+            ax.set_xticks([]), ax.set_yticks([])
             plt.subplots_adjust(
                 left=0.1, bottom=0.1, top=0.9, right=0.9, hspace=0.02, wspace=0.02
             )
             plt.show()
-        else:
-            continue
 
 
 if __name__ == "__main__":
