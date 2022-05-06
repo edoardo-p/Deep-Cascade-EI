@@ -16,8 +16,7 @@ parser.add_argument(
     nargs="+",
     type=int,
     help="learning rate schedule (when to drop lr by 10x),"
-    "default [2000, 3000, 4000] for CT,"
-    "default [500, 1000, 1500] for inpainting",
+    "(default: [2000, 3000, 4000])",
 )
 parser.add_argument(
     "--cos", default=False, action="store_true", help="use cosine lr schedule"
@@ -27,7 +26,7 @@ parser.add_argument(
     default=5000,
     type=int,
     metavar="N",
-    help="number of total epochs to run " "(default 5000 for CT, 2000 for inpainting)",
+    help="number of total epochs to run " "(default: 5000)",
 )
 parser.add_argument(
     "--lr",
@@ -35,7 +34,7 @@ parser.add_argument(
     default=5e-4,
     type=float,
     metavar="LR",
-    help="initial learning rate " "(default 5e-4 for CT, 1e-3 for inpainting)",
+    help="initial learning rate " "(default: 5e-4)",
     dest="lr",
 )
 parser.add_argument(
@@ -53,20 +52,13 @@ parser.add_argument(
     default=2,
     type=int,
     metavar="N",
-    help="mini-batch size (default: 2 for CT, 1 for inpainting)",
+    help="mini-batch size (default: 2)",
 )
 parser.add_argument(
     "--ckp-interval",
     default=500,
     type=int,
-    help="save checkpoints interval epochs (default: 1000 for CT, 500 for inpainting)",
-)
-parser.add_argument(
-    "--resume",
-    default="",
-    type=str,
-    metavar="PATH",
-    help="path to latest checkpoint (default: none)",
+    help="save checkpoints interval epochs (default: 1000)",
 )
 
 # ei specific configs:
@@ -74,31 +66,27 @@ parser.add_argument(
     "--ei-trans",
     default=5,
     type=int,
-    help="number of transformations for EI (default: 5 for CT, 3 for inpainting)",
+    help="number of transformations for EI (default: 5)",
 )
 parser.add_argument(
     "--ei-alpha",
     default=100,
     type=float,
-    help="equivariance strength (default: 100 for CT, 1 for inpainting)",
-)
-parser.add_argument(
-    "--adv_beta", default=1e-8, type=float, help="adversarial strength (default: 1e-8)"
+    help="equivariance strength (default: 100)",
 )
 
 # inverse problem task configs:
 parser.add_argument(
-    "--ct-views",
+    "--views",
     default=50,
     type=int,
-    help="number of radon views for CT task (default: 50)",
+    help="number of radon views (default: 50)",
 )
 
 
 def main():
     args = parser.parse_args()
 
-    alpha = {"ei": args.ei_alpha, "adv": args.adv_beta}  # equivariance strength
     lr = {"G": args.lr, "WD": args.weight_decay}
 
     dataset = CTData(mode="train")
@@ -122,7 +110,7 @@ def main():
         transform,
         args.epochs,
         lr,
-        alpha,
+        args.ei_alpha,
         args.ckp_interval,
         schedule="cos" if args.cos else args.schedule,
         loss_type="l2",

@@ -1,8 +1,8 @@
-import torch
-import numpy as np
 import random
 
 import kornia as dgm
+import numpy as np
+import torch
 
 
 class Rotate:
@@ -15,6 +15,7 @@ class Rotate:
 
 
 def rotate_dgm(data, n_trans=5, random_rotate=False):
+    """Rotates the data n_trans times"""
     if random_rotate:
         theta_list = random.sample(list(np.arange(1, 359)), n_trans)
     else:

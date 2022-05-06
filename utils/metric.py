@@ -1,39 +1,21 @@
-import torch
-import numpy as np
-
-from skimage.metrics import structural_similarity as ssim
-from skimage.metrics import peak_signal_noise_ratio as psnr
 from skimage.metrics import mean_squared_error as mse
-from skimage import img_as_float
-
-# --------------------------------
-# metric
-# --------------------------------
-def cal_psnr(a, b):
-    # a: prediction
-    # b: ground-truth
-    alpha = np.sqrt(a.shape[-1] * a.shape[-2])
-    return (
-        20
-        * torch.log10(alpha * torch.norm(b, float("inf")) / torch.norm(b - a, 2))
-        .detach()
-        .cpu()
-        .numpy()
-    )
+from skimage.metrics import peak_signal_noise_ratio as psnr
+from skimage.metrics import structural_similarity as ssim
 
 
-def cal_mse(a, b, mask=None):
-    # a: prediction
-    # b: ground-truth
-    if mask is None:
-        return torch.nn.MSELoss()(a, b).item()
-    else:
-        return torch.nn.MSELoss()(a[mask > 0], b[mask > 0]).item()
+def calc_psnr(target, pred):
+    target = target.detach().numpy()
+    pred = pred.detach().numpy()
+    return psnr(target, pred)
 
 
-def cal_ssim(a, b, multichannel=False):
-    # a: prediction
-    # b: ground-truth
-    b = img_as_float(b.squeeze().detach().cpu().numpy())
-    a = img_as_float(a.squeeze().detach().cpu().numpy())
-    return ssim(b, a, data_range=a.max() - a.min(), multichannel=multichannel)
+def calc_mse(target, pred):
+    target = target.detach().numpy()
+    pred = pred.detach().numpy()
+    return mse(target, pred)
+
+
+def calc_ssim(target, pred):
+    target = target.reshape(128, 128, 2).detach().numpy()
+    pred = pred.reshape(128, 128, 2).detach().numpy()
+    return ssim(target, pred, multichannel=True)

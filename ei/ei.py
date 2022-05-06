@@ -22,7 +22,7 @@ def adjust_learning_rate(schedule, epoch, epochs, lr):
     return lr
 
 
-class EI(object):
+class EI:
     def __init__(self, in_channels, out_channels, img_width, img_height, dtype):
         super(EI, self).__init__()
         self.in_channels = in_channels
@@ -49,6 +49,7 @@ class EI(object):
         os.makedirs(save_path, exist_ok=True)
 
         generator = CCNN(
+            masks=None,
             in_channels=self.in_channels,
             out_channels=self.out_channels,
             filters=64,
@@ -66,8 +67,9 @@ class EI(object):
         field_names = ["epoch", "loss_mc", "loss_ei", "loss_total"]
 
         if report_psnr:
-            field_names.append("psnr")
             field_names.append("mse")
+            field_names.append("psnr")
+            field_names.append("ssim")
 
         log = Logger(
             save_path,
@@ -95,8 +97,9 @@ class EI(object):
 
             log.record(epoch, *loss)
             print(f"{get_timestamp()}\tEpoch {epoch}/{epochs}", end="\t")
-            for key, val in loss:
+            for key, val in loss.items():
                 print(f"{key}={val}", end="\t")
+            print()
 
             if epoch % ckp_interval == 0 or epoch == epochs:
                 state = {
