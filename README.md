@@ -12,13 +12,11 @@ conda env create -f environment.yml
 
 ## Test
 
-There are pre-trained models available [here]().
-
-Place the `.tar` file inside the `ckp` folder and run the following command
-
+To test a model, simply run the following command with the appropriate filename
 ```
 python test.py --ckp "./ckp/<filename>"
 ```
+By default, it will load the provided `ckp_final.pth.tar` file.
 
 Additional flags
 
